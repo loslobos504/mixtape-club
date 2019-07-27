@@ -147,7 +147,7 @@ app.get('/getUser', (req, res) => {
 });
 
 
-//get handler to encode sound files into an array buffer for the client
+// get handler to encode sound files into an array buffer for the client
 
 // const soundHandle = new XMLHttpRequest.response;
 
@@ -381,13 +381,20 @@ app.post('/mixtape-player/', (req, res) => {
   const { id } = req.body;
   const filter = { _id: id };
 
+  db.updatePlaylist(filter, { $inc: { views: 1 } }, (response) => {
+    if (response) {
+      console.log('Worked');
+    }
+  });
+
   db.retrievePlaylist(filter, (response) => {
     if (response === null) {
       res.end('No Results Found');
     } else {
       const {
-        aSideLinks, bSideLinks, tapeDeck, tapeLabel, userId,
+        aSideLinks, bSideLinks, tapeDeck, tapeLabel, userId, views,
       } = response;
+      console.log(views);
       const aSide = JSON.parse(aSideLinks);
       let bSide;
       if (bSideLinks) {
@@ -398,6 +405,7 @@ app.post('/mixtape-player/', (req, res) => {
           tapeDeck,
           tapeLabel,
           userId,
+          views,
         };
         res.send(data);
       } else {
@@ -440,10 +448,14 @@ app.post('/search', (req, res) => {
     });
 });
 
-
-
-
-
+app.post('/new-view', (req, res) => {
+  const { id } = req.body;
+  console.log(id);
+  db.updatePlaylist({ _id: id }, { $inc: { views: 1 } }, (response) => {
+    console.log('Ok');
+    res.status(200).send({ views: response.views });
+  });
+});
 
 
 const PORT = 3000;
