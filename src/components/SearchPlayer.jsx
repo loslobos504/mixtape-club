@@ -1,14 +1,18 @@
 import React from 'react';
 import YouTube from 'react-youtube';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faPause, faPlus, faForward, faBackward, faDotCircle, faStopCircle, faDrum, faCircle } from '@fortawesome/free-solid-svg-icons'
+import { faPlay, faPause, faPlus, faForward, faBackward, faDotCircle, faStopCircle, faDrum, faCircle, faHatWizard } from '@fortawesome/free-solid-svg-icons'
 
 /** Search Player component renders the player interface connected with the Search component 
  * at the create-mixtapes route and is a child component of CreateMixtapes.
  */
 
 const SearchPlayer = (props) => {
+<<<<<<< HEAD
     const { onReady, onPlayVideo, onPauseVideo, onUserRecordingEnded, playing, recording, onBackward, onForward, onStopBackward, onStopForward, onStopRecordVideo, onRecordVideo, selectedResult, onPassToSideA, onPassToSideB, opts, recordUser, startRecordUser, stopRecordUser, onKick, onSnare} = props;
+=======
+    const { onReady, onPlayVideo, onPauseVideo, playing, recording, onBackward, onForward, onStopBackward, onStopForward, onStopRecordVideo, onRecordVideo, selectedResult, onPassToSideA, onPassToSideB, opts, recordUser, startRecordUser, stopRecordUser, onKick, onSnare, onHat} = props;
+>>>>>>> creating hihat
 
     let title = selectedResult.snippet.title.replace(/&amp;/g, '&');
     title = title.replace(/&#39;/g, '\'');
@@ -138,6 +142,7 @@ const SearchPlayer = (props) => {
                     <div className="row">
                     <FontAwesomeIcon  style={drumStyle} icon={faDrum} onClick={onKick} />
                     <FontAwesomeIcon  style={snareStyle} icon={faCircle} onClick={onSnare} />
+                    <FontAwesomeIcon style={snareStyle} icon={faHatWizard} onClick={onHat} />
                     </div>
                 </div>
                 <div className="row col-11 col-md-3 player-button-row mx-auto">
