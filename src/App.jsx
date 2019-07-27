@@ -708,8 +708,12 @@ class App extends React.Component {
                 gain.gain.exponentialRampToValueAtTime(0.00001, when + 0.3);
             }
             hiHat();
-            hiHat();
-            hiHat();
+            setTimeout(() =>{
+                hiHat();
+            },500)
+            setTimeout(() =>{
+                hiHat();
+            },1000)
         }
         this.setState({
             hiHat: noise(),
