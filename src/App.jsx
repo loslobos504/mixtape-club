@@ -548,8 +548,10 @@ class App extends React.Component {
                         id: {
                             videoId: data,
                         },
+                    },
+                    opts: {
                         userRecording: true,
-                    }
+                    },
                 });
             })
             .catch(err => console.log(err));
