@@ -24,6 +24,7 @@ class MixtapePlayer extends React.Component {
         super(props);
         this.state = {
             player: null,
+            audioPlayer: document.getElementById('play-user-recording'),
             playing: false,
             aSideLinks: ["fi33-cITS0s"],
             bSideLinks: ["H1Zm6E6Sy4Y"],
@@ -41,6 +42,7 @@ class MixtapePlayer extends React.Component {
             currentTrack: 0,
             currentPlaylistId: '',
             toggleLink: false,
+            userRecording: false,
 
             oscillator: '',
             stopInterval: null,
@@ -51,6 +53,7 @@ class MixtapePlayer extends React.Component {
         }
         
         this.getUserPlaylists();
+        this.playUserRecording = this.playUserRecording.bind(this);
         this.onReady = this.onReady.bind(this);
         this.onPlayVideo = this.onPlayVideo.bind(this);
         this.onPauseVideo = this.onPauseVideo.bind(this);
@@ -240,6 +243,34 @@ class MixtapePlayer extends React.Component {
         }
     }
 
+    playUserRecording(audioId) {
+        const audioPlayer = document.getElementById('play-user-recording');
+
+        console.log(audioId);
+        axios.post('/recording', { audioId })
+            .then((response) => {
+                const { data: base64string } = response;
+
+                const raw = window.atob(base64string);
+                const rawLength = raw.length;
+                const binaryData = new Uint8Array(new ArrayBuffer(rawLength));
+                for (let i = 0; i < rawLength; i++) {
+                    binaryData[i] = raw.charCodeAt(i);
+                }
+                const blob = new Blob([binaryData], { 'type': 'audio/ogg; codecs=opus'});
+                const audioURL = window.URL.createObjectURL(blob);
+                audioPlayer.src = audioURL;
+                this.setState({
+                    userRecording: true,
+                    audioPlayer,
+                });
+                this.onPlayVideo();
+            })
+            .catch((err) => {
+                console.log(`Retrieve user recording error: ${err}`);
+            });
+    }
+
     /**
      * Function listens for the youTube player to be fully loaded, then loads
      * the playlist into the player using the built-in YouTube Player API function
@@ -250,20 +281,24 @@ class MixtapePlayer extends React.Component {
             player: event.target,
         });
         const { sidePlaying, player, aSideOpts } = this.state;
-
-        if( aSideOpts[0].playerVars.end){
-            player.loadVideoById({
-                videoId: sidePlaying[0],
-                startSeconds: aSideOpts[0].playerVars.start,
-                endSeconds: aSideOpts[0].playerVars.end,
-            }) 
+        
+        if (aSideOpts[0].userRecording) {
+            this.playUserRecording(sidePlaying[0]);
         } else {
-            player.loadVideoById({
-                videoId: sidePlaying[0],
-                startSeconds: aSideOpts[0].playerVars.start,
-            })
+            if(aSideOpts[0].playerVars.end){
+                player.loadVideoById({
+                    videoId: sidePlaying[0],
+                    startSeconds: aSideOpts[0].playerVars.start,
+                    endSeconds: aSideOpts[0].playerVars.end,
+                }) 
+            } else {
+                player.loadVideoById({
+                    videoId: sidePlaying[0],
+                    startSeconds: aSideOpts[0].playerVars.start,
+                })
+            }
+            this.state.player.playVideo(); 
         }
-        this.state.player.playVideo(); 
     }
 
     /**
@@ -271,10 +306,19 @@ class MixtapePlayer extends React.Component {
      *  The playVideo function is a built-in function of the YouTube Player API.
      */
     onPlayVideo() {
-        this.state.player.playVideo();
+        const { userRecording, audioPlayer } = this.state;
+        if (userRecording === true) {
+            audioPlayer.play()
+                .catch((err) => {
+                    console.log(err.message);
+                });
+        } else {
+            this.state.player.playVideo();
+        }
         this.setState({
             playing: true,
-        })
+            userRecording: true,
+        });
     }
 
     /**
@@ -282,12 +326,17 @@ class MixtapePlayer extends React.Component {
      * sets the state of playing to false.
      */
     onPauseVideo(){
-        this.state.player.pauseVideo();
+        const { userRecording, audioPlayer } = this.state;
+        if (userRecording === true) {
+            audioPlayer.pause();
+        } else {
+            this.state.player.pauseVideo();
+        }
         clearInterval(this.state.stopInterval);
         this.setState({
             playing: false,
             stopInterval: null,
-        })
+        });
     }
 
     /**
@@ -295,8 +344,15 @@ class MixtapePlayer extends React.Component {
      * rate and lowering the volume while the button is held-down.
      */
     onForward() {
-        this.state.player.setPlaybackRate(2);
-        this.state.player.setVolume(50);
+        const { userRecording, audioPlayer } = this.state;
+        if (userRecording === true) {
+            this.state.interval = setInterval(() => {
+                audioPlayer.currentTime += 1;
+            }, 90);
+        } else {
+            this.state.player.setPlaybackRate(2);
+            this.state.player.setVolume(50);
+        }
     }
     
     /**
@@ -304,8 +360,13 @@ class MixtapePlayer extends React.Component {
      * button is released.
      */
     onStopForward() {
-        this.state.player.setPlaybackRate(1.0);
-        this.state.player.setVolume(100);
+        const { userRecording } = this.state;
+        if (userRecording === true) {
+            clearInterval(this.state.interval);
+        } else {
+            this.state.player.setPlaybackRate(1.0);
+            this.state.player.setVolume(100);
+        }
     }
 
     /**
@@ -314,12 +375,19 @@ class MixtapePlayer extends React.Component {
      * subtracts from that value to seek backwards on the player on an interval.
      */
     onBackward() {
-        let time = this.state.player.getCurrentTime();
-        this.state.player.setVolume(50);
-        this.state.interval = setInterval(() => {
-            time -= 2;
-            this.state.player.seekTo(time);
-        }, 90)
+        const { userRecording, audioPlayer } = this.state;
+        if (userRecording === true) {
+            this.state.interval = setInterval(() => {
+                audioPlayer.currentTime -= 1;
+            }, 90);
+        } else {
+            let time = this.state.player.getCurrentTime();
+            this.state.player.setVolume(50);
+            this.state.interval = setInterval(() => {
+                time -= 2;
+                this.state.player.seekTo(time);
+            }, 90);
+        }
     }
 
     /**
@@ -349,7 +417,6 @@ class MixtapePlayer extends React.Component {
             }
         } else {
             if (sidePlaying === aSideLinks && time <= aSideOpts[currentTrack].playerVars.start) {
-                console.log('on the right track')
                 player.seekTo(aSideOpts[currentTrack].playerVars.start);
             } else if (sidePlaying === bSideLinks && time <= bSideOpts[currentTrack].playerVars.start){
                 player.seekTo(bSideOpts[currentTrack].playerVars.start);
@@ -383,22 +450,38 @@ class MixtapePlayer extends React.Component {
      * Function triggered when track ends. It cues the next song in the setlist.
      */
     onTrackEnd() {
-        let { player, currentTrack, sidePlaying, aSideLinks, bSideLinks, aSideOpts, bSideOpts } = this.state;
-        if (player.getPlayerState() === 0 && currentTrack !== sidePlaying.length - 1) {
+        let { player, currentTrack, sidePlaying, aSideLinks, bSideLinks, aSideOpts, bSideOpts, userRecording } = this.state;
+        if ((player.getPlayerState() === 0 || userRecording) && currentTrack !== sidePlaying.length - 1) {
             currentTrack += 1;
+            this.setState({
+                userRecording: false,
+                currentTrack,
+            });
             if (sidePlaying === aSideLinks) {
-                player.loadVideoById({
-                    videoId: aSideLinks[currentTrack],
-                    startSeconds: aSideOpts[currentTrack].playerVars.start,
-                    endSeconds: aSideOpts[currentTrack].playerVars.end,
-                })
+                if (aSideOpts[currentTrack].userRecording) {
+                    this.playUserRecording(aSideLinks[currentTrack]);
+                } else {
+                    player.loadVideoById({
+                        videoId: aSideLinks[currentTrack],
+                        startSeconds: aSideOpts[currentTrack].playerVars.start,
+                        endSeconds: aSideOpts[currentTrack].playerVars.end,
+                    });
+                }
             } else {
-                player.loadVideoById({
-                    videoId: bSideLinks[currentTrack],
-                    startSeconds: bSideOpts[currentTrack].playerVars.start,
-                    endSeconds: bSideOpts[currentTrack].playerVars.end, 
-                })
+                if (bSideOpts[currentTrack].userRecording) {
+                    this.playUserRecording(bSideLinks[currentTrack]);
+                } else {
+                    player.loadVideoById({
+                        videoId: bSideLinks[currentTrack],
+                        startSeconds: bSideOpts[currentTrack].playerVars.start,
+                        endSeconds: bSideOpts[currentTrack].playerVars.end, 
+                    })
+                }
             }
+        } else {
+            this.setState({
+                userRecording: false,
+            })
         }
     }
 
@@ -408,51 +491,68 @@ class MixtapePlayer extends React.Component {
      */
     onFlip(){
         if(this.state.sidePlaying[0] === this.state.aSideLinks[0] && this.state.bSideLinks.length){
-            const { sidePlaying, player, bSideOpts, bSideLinks } = this.state;
-            player.stopVideo();
+            const { sidePlaying, player, bSideOpts, bSideLinks, userRecording, audioPlayer } = this.state;
+            if (userRecording === true) {
+                audioPlayer.stop();
+            } else {
+                player.stopVideo();
+            }
 
             this.setState({
                 sidePlaying: bSideLinks,
-            })       
+                userRecording: false,
+                currentTrack: 0,
+            });
 
-            if(bSideOpts[0].playerVars.end){
-                player.loadVideoById({
-                    videoId: bSideLinks[0],
-                    startSeconds: bSideOpts[0].playerVars.start,
-                    endSeconds: bSideOpts[0].playerVars.end,
-                })
+            if(bSideOpts[0].userRecording) {
+                this.playUserRecording(bSideLinks[0]);
             } else {
-                player.loadVideoById({
-                    videoId: bSideLinks[0],
-                    startSeconds: bSideOpts[0].playerVars.start,
-                })
+                if(bSideOpts[0].playerVars.end){
+                    player.loadVideoById({
+                        videoId: bSideLinks[0],
+                        startSeconds: bSideOpts[0].playerVars.start,
+                        endSeconds: bSideOpts[0].playerVars.end,
+                    })
+                } else {
+                    player.loadVideoById({
+                        videoId: bSideLinks[0],
+                        startSeconds: bSideOpts[0].playerVars.start,
+                    })
+                }
+                player.playVideo();
             }
-            player.playVideo();
 
         } else if(this.state.sidePlaying[0] === this.state.bSideLinks[0]){
-            const { sidePlaying, player, aSideOpts, aSideLinks, bSideLinks } = this.state;
+            const { sidePlaying, player, aSideOpts, aSideLinks, bSideLinks, userRecording } = this.state;
 
-            player.stopVideo();
+            if (userRecording === true) {
+                audioPlayer.stop();
+            } else {
+                player.stopVideo();
+            }
 
             this.setState({
                 sidePlaying: aSideLinks,
-            })
-
+                userRecording: false,
+            });
+            
+            if(aSideOpts[0].userRecording) {
+                this.playUserRecording(aSideLinks[0]);
+            } else {
                 if(aSideOpts[index].playerVars.end){
-                    console.log('test!', aSideOpts)
                     player.loadVideoById({
                         videoId: aSideLinks[0],
                         startSeconds: aSideOpts[index].playerVars.start,
                         endSeconds: aSideOpts[index].playerVars.end,
                     })
                 } else {
-                    console.log('test!', aSideOpts)
                     player.loadVideoById({
                         videoId: aSideLinks[0],
                         startSeconds: aSideOpts[index].playerVars.start,
                     })
                 }
-            player.playVideo();
+                player.playVideo();
+            }
         }      
     }
     
@@ -461,9 +561,13 @@ class MixtapePlayer extends React.Component {
      * matching the id of the clicked element and the id of the playlist.
      */
     tapeRefresh(event){
-        const { sidePlaying, player } = this.state;
+        const { sidePlaying, player, userRecording, audioPlayer } = this.state;
 
-        player.stopVideo();
+        if (userRecording === true) {
+            audioPlayer.stop();
+        } else {
+            player.stopVideo();
+        }
         
         this.state.userPlaylists.forEach((playlist) => {
             if (playlist['_id'] === Number(event.currentTarget.id) && playlist.aSideLinks !== undefined) {
@@ -495,26 +599,27 @@ class MixtapePlayer extends React.Component {
                     tapeCover: playlist.tapeDeck,
                     sidePlaying: aVideoArray,
                     tapeTitle: playlist.tapeLabel,
-                    currentTrack: 0,
+                    currentTrack: -1,
+                    userRecording: false,
                 });
                 const { sidePlaying, player, aSideOpts } = this.state;
-                if(aOpts[0].playerVars.end){
-                    console.log('timestamp', aOpts[0].playerVars.start)
-
-                    player.loadVideoById({
-                        videoId: aVideoArray[0],
-                        startSeconds: aOpts[0].playerVars.start,
-                        endSeconds: aOpts[0].playerVars.end,
-                    })
+                if (aOpts[0].userRecording) {
+                    this.playUserRecording(aVideoArray[0]);
                 } else {
-                    console.log('timestamp', aOpts[0].playerVars.start)
-
-                    player.loadVideoById({
-                        videoId: aVideoArray[0],
-                        startSeconds: aOpts[0].playerVars.start,
-                    })
+                    if(aOpts[0].playerVars.end){
+                        player.loadVideoById({
+                            videoId: aVideoArray[0],
+                            startSeconds: aOpts[0].playerVars.start,
+                            endSeconds: aOpts[0].playerVars.end,
+                        })
+                    } else {
+                        player.loadVideoById({
+                            videoId: aVideoArray[0],
+                            startSeconds: aOpts[0].playerVars.start,
+                        })
+                    }
+                    player.playVideo();  
                 }
-                player.playVideo();  
             }
         })
         axios.post('/new-view', {id: event.currentTarget.id})
@@ -568,14 +673,6 @@ class MixtapePlayer extends React.Component {
          });
     }
 
-
-
-
-
-
-
-
-
     render (){
 
         const { aSideLinks, bSideLinks, aSideTitles, bSideTitles, tapeCover, userPlaylists, tapeTitle, currentSong, userName, currentPlaylistId, toggleLink} = this.state;
@@ -596,6 +693,7 @@ class MixtapePlayer extends React.Component {
 
             <PlayerSongList onFlip={this.onFlip} currentSong={currentSong} aSideLinks={aSideLinks} bSideLinks={bSideLinks} aSideTitles={aSideTitles} bSideTitles={bSideTitles} currentPlaylistId={currentPlaylistId} toggleLink={toggleLink} onToggleLink={this.onToggleShareLink} />
             <UserMixtapesList isPublic={isPublic} userPlaylists={userPlaylists} userName={userName} tapeRefresh={this.tapeRefresh} />
+            <audio className="YouTube-vid" id="play-user-recording" controls="controls" type="audio/ogg" onEnded={this.onTrackEnd} ></audio>
         </div>
         )
     };

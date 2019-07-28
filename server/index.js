@@ -149,12 +149,8 @@ app.get('/getUser', (req, res) => {
 
 // get handler to encode sound files into an array buffer for the client
 
-// const soundHandle = new XMLHttpRequest.response;
-
-app.get('soundFile/:file', (req, res) => {
-  const {
-    file,
-  } = req.params;
+app.get('/soundFile/:file', (req, res) => {
+  const { file } = req.params;
   fs.readFile(`./sound/${file}.mp3`, (err, data) => {
     if (err) {
       console.error(err);
@@ -174,7 +170,6 @@ app.get('soundFile/:file', (req, res) => {
 app.get('/userPlaylists', (req, res) => {
   if (req.user) {
     const { id, displayName } = req.user;
-    console.log(displayName);
     db.getAllPlaylists({ userId: id }, (info, response) => {
       console.log(response);
       const data = { response, displayName };
@@ -261,7 +256,8 @@ app.post('/upload', upload.single('recording'), async (req, res) => {
   try {
     const { buffer: recording } = req.file;
     const { id } = req.user;
-    fs.open(`server/audio/${id}.ogg`, 'w+', (err, fd) => {
+    const fileName = `${id}-${new Date().toISOString()}`;
+    fs.open(`server/audio/${fileName}.ogg`, 'w+', (err, fd) => {
       if (err) {
         res.status(500).send('Could not save recording');
       } else {
@@ -277,7 +273,7 @@ app.post('/upload', upload.single('recording'), async (req, res) => {
                 if (err) {
                   res.status(500).send('Could not save recording');
                 }
-                res.status(201).send(id);
+                res.status(201).send(fileName);
               });
             });
           }
@@ -364,8 +360,6 @@ app.post('/getLink', (req, res) => {
     if (response === null) {
       res.end('No Results Found');
     } else {
-      console.log(response._id);
-
       res.send({ id: response._id });
     }
   });
@@ -394,7 +388,6 @@ app.post('/mixtape-player/', (req, res) => {
       const {
         aSideLinks, bSideLinks, tapeDeck, tapeLabel, userId, views,
       } = response;
-      console.log(views);
       const aSide = JSON.parse(aSideLinks);
       let bSide;
       if (bSideLinks) {
@@ -417,6 +410,18 @@ app.post('/mixtape-player/', (req, res) => {
         };
         res.send(data);
       }
+    }
+  });
+});
+
+app.post('/recording', (req, res) => {
+  const { audioId } = req.body;
+  fs.readFile(`./server/audio/${audioId}.ogg`, { encoding: 'base64' }, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.send(500).send('Could not retrieve recording');
+    } else {
+      res.status(200).send(data);
     }
   });
 });
