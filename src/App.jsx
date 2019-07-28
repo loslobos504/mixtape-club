@@ -673,24 +673,24 @@ class App extends React.Component {
 
                 // Always useful
                 var when = context.currentTime;
-                
+
                 var gain = context.createGain();
-                
+
                 // Bandpass
                 var bandpass = context.createBiquadFilter();
                 bandpass.type = "bandpass";
                 bandpass.frequency.value = 10000;
-                
+
                 // Highpass
                 var highpass = context.createBiquadFilter();
                 highpass.type = "highpass";
                 highpass.frequency.value = 7000;
-                
+
                 // Connect the graph
                 bandpass.connect(highpass);
                 highpass.connect(gain);
                 gain.connect(context.destination);
-                
+
                 // Create the oscillators
                 ratios.forEach(function (ratio) {
                     var osc = context.createOscillator();
@@ -700,7 +700,7 @@ class App extends React.Component {
                     osc.connect(bandpass);
                     osc.start(when);
                     osc.stop(when + 0.3);
-                });    
+                });
                 // Define the volume envelope
                 gain.gain.setValueAtTime(0.00001, when);
                 gain.gain.exponentialRampToValueAtTime(1, when + 0.02);
@@ -708,12 +708,12 @@ class App extends React.Component {
                 gain.gain.exponentialRampToValueAtTime(0.00001, when + 0.3);
             }
             hiHat();
-            setTimeout(() =>{
+            setTimeout(() => {
                 hiHat();
-            },500)
-            setTimeout(() =>{
+            }, 500)
+            setTimeout(() => {
                 hiHat();
-            },1000)
+            }, 1000)
         }
         this.setState({
             hiHat: noise(),
@@ -727,11 +727,7 @@ class App extends React.Component {
             <Router>
                 <div className="App">
                     <Navigation logout={this.logout} isAuthenticated={isAuthenticated} userName={userName} />
-<<<<<<< HEAD
-                <Container opts={opts} onForward={this.onForward} onBackward={this.onBackward} onStopBackward={this.onStopBackward} onStopForward={this.onStopForward} authenticateUser={this.authenticateUser} isAuthenticated={isAuthenticated} onReady={this.onReady} onPauseVideo={this.onPauseVideo} onPlayVideo={this.onPlayVideo} onUserRecordingEnded={this.onUserRecordingEnded} onStopRecordVideo={this.onStopRecordVideo} onRecordVideo={this.onRecordVideo} onChange={this.onChange} onSearch={this.onSearch} onGenerate={this.onGenerate} onResultClick={this.onResultClick} playing={playing} recording={recording} searchResults={searchResults} tapeImages={tapeImages} builderImage={builderImage} selectImage={this.onSelectTapeImage} tapeLabel={tapeLabel} onLabelChange={this.onTapeLabelChange} selectedResult={selectedResult} onPassToSideA={this.onPassSongToSideA} sideA={sideA} onPassToSideB={this.onPassSongToSideB} sideB={sideB} displayImageSelector={displayImageSelector} onSaveImage={this.onSaveTapeImage} onDeckSideA={onDeckSideA} onDeckSideB={onDeckSideB} onSavePlaylist={this.onSavePlaylist} onMakePublic={this.onMakePublic} tapeBackgroundColor={tapeBackgroundColor} onDelete={this.onDeleteSong} isPublic={isPublic} queryParam={queryParam} googleId={googleId} startRecordUser={this.startRecordUser} stopRecordUser={this.stopRecordUser} recordUser={recordUser} onKick={this.onKick} onSnare={this.onSnare}/>
-=======
                 <Container opts={opts} onForward={this.onForward} onBackward={this.onBackward} onStopBackward={this.onStopBackward} onStopForward={this.onStopForward} authenticateUser={this.authenticateUser} isAuthenticated={isAuthenticated} onReady={this.onReady} onPauseVideo={this.onPauseVideo} onPlayVideo={this.onPlayVideo} onStopRecordVideo={this.onStopRecordVideo} onRecordVideo={this.onRecordVideo} onChange={this.onChange} onSearch={this.onSearch} onGenerate={this.onGenerate} onResultClick={this.onResultClick} playing={playing} recording={recording} searchResults={searchResults} tapeImages={tapeImages} builderImage={builderImage} selectImage={this.onSelectTapeImage} tapeLabel={tapeLabel} onLabelChange={this.onTapeLabelChange} selectedResult={selectedResult} onPassToSideA={this.onPassSongToSideA} sideA={sideA} onPassToSideB={this.onPassSongToSideB} sideB={sideB} displayImageSelector={displayImageSelector} onSaveImage={this.onSaveTapeImage} onDeckSideA={onDeckSideA} onDeckSideB={onDeckSideB} onSavePlaylist={this.onSavePlaylist} onMakePublic={this.onMakePublic} tapeBackgroundColor={tapeBackgroundColor} onDelete={this.onDeleteSong} isPublic={isPublic} queryParam={queryParam} googleId={googleId} startRecordUser={this.startRecordUser} stopRecordUser={this.stopRecordUser} recordUser={recordUser} onKick={this.onKick} onSnare={this.onSnare} onHat={this.onHat}/>
->>>>>>> creating hihat
 
                 </div>
             </Router>

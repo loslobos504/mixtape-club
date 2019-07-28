@@ -65,11 +65,8 @@ class MixtapePlayer extends React.Component {
         this.onFilter = this.onFilter.bind(this);
         this.onTrackEnd = this.onTrackEnd.bind(this);
         this.distortTape = this.distortTape.bind(this);
-<<<<<<< HEAD
-=======
         // this.getStatic = this.getStatic.bind(this);
         // this.init = this.init.bind(this);
->>>>>>> creating hihat
         
         this.divStyle = {
             borderRadius: '5px',
@@ -82,22 +79,15 @@ class MixtapePlayer extends React.Component {
 
     componentWillMount() {
         this.loadShared()
-<<<<<<< HEAD
-=======
-        // this.getStatic()
->>>>>>> creating hihat
         if(this.state.googleId !== null){
             this.getUserPlaylists();
         }
     }
 
-<<<<<<< HEAD
-=======
     componentDidMount(){        
         // this.init();
     }
 
->>>>>>> creating hihat
     /**
      * Function makes get request to the server, which then retrieves
      * the users playlists from the database based on their googleId.

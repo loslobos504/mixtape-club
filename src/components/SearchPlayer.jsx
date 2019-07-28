@@ -8,11 +8,7 @@ import { faPlay, faPause, faPlus, faForward, faBackward, faDotCircle, faStopCirc
  */
 
 const SearchPlayer = (props) => {
-<<<<<<< HEAD
-    const { onReady, onPlayVideo, onPauseVideo, onUserRecordingEnded, playing, recording, onBackward, onForward, onStopBackward, onStopForward, onStopRecordVideo, onRecordVideo, selectedResult, onPassToSideA, onPassToSideB, opts, recordUser, startRecordUser, stopRecordUser, onKick, onSnare} = props;
-=======
     const { onReady, onPlayVideo, onPauseVideo, playing, recording, onBackward, onForward, onStopBackward, onStopForward, onStopRecordVideo, onRecordVideo, selectedResult, onPassToSideA, onPassToSideB, opts, recordUser, startRecordUser, stopRecordUser, onKick, onSnare, onHat} = props;
->>>>>>> creating hihat
 
     let title = selectedResult.snippet.title.replace(/&amp;/g, '&');
     title = title.replace(/&#39;/g, '\'');
