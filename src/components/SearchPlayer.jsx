@@ -8,7 +8,7 @@ import { faPlay, faPause, faPlus, faForward, faBackward, faDotCircle, faStopCirc
  */
 
 const SearchPlayer = (props) => {
-    const { onReady, onPlayVideo, onPauseVideo, playing, recording, onBackward, onForward, onStopBackward, onStopForward, onStopRecordVideo, onRecordVideo, selectedResult, onPassToSideA, onPassToSideB, opts, recordUser, startRecordUser, stopRecordUser, onKick, onSnare, onHat} = props;
+    const { onReady, onPlayVideo, onPauseVideo, playing, recording, onBackward, onForward, onStopBackward, onStopForward, onStopRecordVideo, onUserRecordingEnded, onRecordVideo, selectedResult, onPassToSideA, onPassToSideB, opts, recordUser, startRecordUser, stopRecordUser, onKick, onSnare, onHat} = props;
 
     let title = selectedResult.snippet.title.replace(/&amp;/g, '&');
     title = title.replace(/&#39;/g, '\'');
