@@ -57,6 +57,7 @@ class App extends React.Component {
             userRecording: null,
             kick: null,
             snare: null,
+            hiHat: null,
         }
 
         this.onSearch = this.onSearch.bind(this);
@@ -90,6 +91,8 @@ class App extends React.Component {
 
         this.onKick = this.onKick.bind(this);
         this.onSnare = this.onSnare.bind(this);
+        this.onHat = this.onHat.bind(this);
+
     }
 
 
@@ -608,8 +611,8 @@ class App extends React.Component {
             var kick = new Kick(context);
             var now = context.currentTime;
             kick.trigger(now);
-            kick.trigger(now + 0.5);
-            kick.trigger(now + 1);
+            // kick.trigger(now + 0.5);
+            // kick.trigger(now + 1);
         }
         this.setState({
             kick: noise(),
@@ -675,12 +678,69 @@ class App extends React.Component {
             var snare = new Snare(context);
             var now = context.currentTime;
             snare.trigger(now);
-            snare.trigger(now + 0.5);
-            snare.trigger(now + 1);
+            // snare.trigger(now + 0.5);
+            // snare.trigger(now + 1);
     }
     this.setState({
         snare: noise(),
     })
+    }
+
+    onHat() {
+        function noise() {
+            var context = new AudioContext();
+            var fundamental = 40;
+            var ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+
+            function hiHat() {
+
+                // Always useful
+                var when = context.currentTime;
+
+                var gain = context.createGain();
+
+                // Bandpass
+                var bandpass = context.createBiquadFilter();
+                bandpass.type = "bandpass";
+                bandpass.frequency.value = 10000;
+
+                // Highpass
+                var highpass = context.createBiquadFilter();
+                highpass.type = "highpass";
+                highpass.frequency.value = 7000;
+
+                // Connect the graph
+                bandpass.connect(highpass);
+                highpass.connect(gain);
+                gain.connect(context.destination);
+
+                // Create the oscillators
+                ratios.forEach(function (ratio) {
+                    var osc = context.createOscillator();
+                    osc.type = "square";
+                    // Frequency is the fundamental * this oscillator's ratio
+                    osc.frequency.value = fundamental * ratio;
+                    osc.connect(bandpass);
+                    osc.start(when);
+                    osc.stop(when + 0.3);
+                });
+                // Define the volume envelope
+                gain.gain.setValueAtTime(0.00001, when);
+                gain.gain.exponentialRampToValueAtTime(1, when + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.3, when + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.00001, when + 0.3);
+            }
+            hiHat();
+            // setTimeout(() => {
+            //     hiHat();
+            // }, 500)
+            // setTimeout(() => {
+            //     hiHat();
+            // }, 1000)
+        }
+        this.setState({
+            hiHat: noise(),
+        })
     }
 
 
@@ -690,7 +750,7 @@ class App extends React.Component {
             <Router>
                 <div className="App">
                     <Navigation logout={this.logout} isAuthenticated={isAuthenticated} userName={userName} />
-                <Container opts={opts} onForward={this.onForward} onBackward={this.onBackward} onStopBackward={this.onStopBackward} onStopForward={this.onStopForward} authenticateUser={this.authenticateUser} isAuthenticated={isAuthenticated} onReady={this.onReady} onPauseVideo={this.onPauseVideo} onPlayVideo={this.onPlayVideo} onUserRecordingEnded={this.onUserRecordingEnded} onStopRecordVideo={this.onStopRecordVideo} onRecordVideo={this.onRecordVideo} onChange={this.onChange} onSearch={this.onSearch} onGenerate={this.onGenerate} onResultClick={this.onResultClick} playing={playing} recording={recording} searchResults={searchResults} tapeImages={tapeImages} builderImage={builderImage} selectImage={this.onSelectTapeImage} tapeLabel={tapeLabel} onLabelChange={this.onTapeLabelChange} selectedResult={selectedResult} onPassToSideA={this.onPassSongToSideA} sideA={sideA} onPassToSideB={this.onPassSongToSideB} sideB={sideB} displayImageSelector={displayImageSelector} onSaveImage={this.onSaveTapeImage} onDeckSideA={onDeckSideA} onDeckSideB={onDeckSideB} onSavePlaylist={this.onSavePlaylist} onMakePublic={this.onMakePublic} tapeBackgroundColor={tapeBackgroundColor} onDelete={this.onDeleteSong} isPublic={isPublic} queryParam={queryParam} googleId={googleId} startRecordUser={this.startRecordUser} stopRecordUser={this.stopRecordUser} recordUser={recordUser} onKick={this.onKick} onSnare={this.onSnare}/>
+                    <Container opts={opts} onForward={this.onForward} onBackward={this.onBackward} onStopBackward={this.onStopBackward} onStopForward={this.onStopForward} authenticateUser={this.authenticateUser} isAuthenticated={isAuthenticated} onUserRecordingEnded={this.onUserRecordingEnded} onReady={this.onReady} onPauseVideo={this.onPauseVideo} onPlayVideo={this.onPlayVideo} onStopRecordVideo={this.onStopRecordVideo} onRecordVideo={this.onRecordVideo} onChange={this.onChange} onSearch={this.onSearch} onGenerate={this.onGenerate} onResultClick={this.onResultClick} playing={playing} recording={recording} searchResults={searchResults} tapeImages={tapeImages} builderImage={builderImage} selectImage={this.onSelectTapeImage} tapeLabel={tapeLabel} onLabelChange={this.onTapeLabelChange} selectedResult={selectedResult} onPassToSideA={this.onPassSongToSideA} sideA={sideA} onPassToSideB={this.onPassSongToSideB} sideB={sideB} displayImageSelector={displayImageSelector} onSaveImage={this.onSaveTapeImage} onDeckSideA={onDeckSideA} onDeckSideB={onDeckSideB} onSavePlaylist={this.onSavePlaylist} onMakePublic={this.onMakePublic} tapeBackgroundColor={tapeBackgroundColor} onDelete={this.onDeleteSong} isPublic={isPublic} queryParam={queryParam} googleId={googleId} startRecordUser={this.startRecordUser} stopRecordUser={this.stopRecordUser} recordUser={recordUser} onKick={this.onKick} onSnare={this.onSnare} onHat={this.onHat}/>
 
                 </div>
             </Router>
