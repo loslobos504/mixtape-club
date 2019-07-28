@@ -588,8 +588,8 @@ class App extends React.Component {
             var kick = new Kick(context);
             var now = context.currentTime;
             kick.trigger(now);
-            kick.trigger(now + 0.5);
-            kick.trigger(now + 1);
+            // kick.trigger(now + 0.5);
+            // kick.trigger(now + 1);
         }
         this.setState({
             kick: noise(),
@@ -655,8 +655,8 @@ class App extends React.Component {
             var snare = new Snare(context);
             var now = context.currentTime;
             snare.trigger(now);
-            snare.trigger(now + 0.5);
-            snare.trigger(now + 1);
+            // snare.trigger(now + 0.5);
+            // snare.trigger(now + 1);
     }
     this.setState({
         snare: noise(),
@@ -708,12 +708,12 @@ class App extends React.Component {
                 gain.gain.exponentialRampToValueAtTime(0.00001, when + 0.3);
             }
             hiHat();
-            setTimeout(() => {
-                hiHat();
-            }, 500)
-            setTimeout(() => {
-                hiHat();
-            }, 1000)
+            // setTimeout(() => {
+            //     hiHat();
+            // }, 500)
+            // setTimeout(() => {
+            //     hiHat();
+            // }, 1000)
         }
         this.setState({
             hiHat: noise(),
