@@ -484,8 +484,16 @@ class App extends React.Component {
     * rate and lowering the volume while the button is held-down.
     */
     onForward() {
-        this.state.player.setPlaybackRate(2);
-        this.state.player.setVolume(50);
+        const { userRecording } = this.state;
+        const audioPlayer = document.getElementById('user-recording');
+        if (userRecording) {
+            this.state.interval = setInterval(() => {
+                audioPlayer.currentTime += 1;
+            }, 90);
+        } else {
+            this.state.player.setPlaybackRate(2);
+            this.state.player.setVolume(50);
+        }
     }
 
     /**
@@ -493,8 +501,13 @@ class App extends React.Component {
      * button is released.
      */
     onStopForward() {
-        this.state.player.setPlaybackRate(1.0);
-        this.state.player.setVolume(100);
+        const { userRecording } = this.state;
+        if (userRecording) {
+            clearInterval(this.state.interval);
+        } else {
+            this.state.player.setPlaybackRate(1.0);
+            this.state.player.setVolume(100);
+        }
     }
 
     /**
@@ -503,12 +516,20 @@ class App extends React.Component {
      * subtracts from that value to seek backwards on the player on an interval.
      */
     onBackward() {
-        let time = this.state.player.getCurrentTime();
-        this.state.player.setVolume(50);
-        this.state.interval = setInterval(() => {
-            time -= 2;
-            this.state.player.seekTo(time);
-        }, 90)
+        const { userRecording } = this.state;
+        const audioPlayer = document.getElementById('user-recording');
+        if (userRecording) {
+            this.state.interval = setInterval(() => {
+                audioPlayer.currentTime -= 1;
+            }, 90);
+        } else {
+            let time = this.state.player.getCurrentTime();
+            this.state.player.setVolume(50);
+            this.state.interval = setInterval(() => {
+                time -= 2;
+                this.state.player.seekTo(time);
+            }, 90)
+        }
     }
 
     /**
